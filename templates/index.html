@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>AI Search Engine</title>
+
+      <!-- Tailwind CSS via CDN -->
+      <script src="https://cdn.tailwindcss.com"></script>
+
+      <!-- Font Awesome for icons -->
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+      <!-- Highlight.js for code syntax highlighting -->
+      <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
+      <!-- Markdown-it for rendering markdown -->
+      <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+
+      <!-- Configure Tailwind theme -->
+      <script>
+            tailwind.config = {
+                  darkMode: 'class',
+                  theme: {
+                        extend: {
+                              colors: {
+                                    primary: {
+                                          50: '#f0f9ff',
+                                          100: '#e0f2fe',
+                                          200: '#bae6fd',
+                                          300: '#7dd3fc',
+                                          400: '#38bdf8',
+                                          500: '#0ea5e9',
+                                          600: '#0284c7',
+                                          700: '#0369a1',
+                                          800: '#075985',
+                                          900: '#0c4a6e',
+                                    },
+                                    secondary: {
+                                          50: '#f8fafc',
+                                          100: '#f1f5f9',
+                                          200: '#e2e8f0',
+                                          300: '#cbd5e1',
+                                          400: '#94a3b8',
+                                          500: '#64748b',
+                                          600: '#475569',
+                                          700: '#334155',
+                                          800: '#1e293b',
+                                          900: '#0f172a',
+                                    }
+                              },
+                              typography: {
+                                    DEFAULT: {
+                                          css: {
+                                                maxWidth: 'none',
+                                          }
+                                    }
+                              }
+                        }
+                  },
+                  plugins: [
+                        function ({ addUtilities }) {
+                              const newUtilities = {
+                                    '.scrollbar-hide': {
+                                          '-ms-overflow-style': 'none',
+                                          'scrollbar-width': 'none',
+                                          '&::-webkit-scrollbar': {
+                                                display: 'none'
+                                          }
+                                    }
+                              }
+                              addUtilities(newUtilities)
+                        }
+                  ]
+            }
+      </script>
+
+      <!-- Custom styles inline -->
+      <style>
+            /* Smooth scrolling */
+            html {
+                  scroll-behavior: smooth;
+            }
+
+            /* Custom scrollbar */
+            ::-webkit-scrollbar {
+                  width: 8px;
+                  height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                  background: #f1f5f9;
+            }
+
+            .dark ::-webkit-scrollbar-track {
+                  background: #1e293b;
+            }
+
+            ::-webkit-scrollbar-thumb {
+                  background: #94a3b8;
+                  border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                  background: #64748b;
+            }
+
+            /* Pulse animation for recording */
+            @keyframes pulse {
+                  0% {
+                        transform: scale(1);
+                        opacity: 1;
+                  }
+
+                  50% {
+                        transform: scale(1.1);
+                        opacity: 0.8;
+                  }
+
+                  100% {
+                        transform: scale(1);
+                        opacity: 1;
+                  }
+            }
+
+            .pulse-animation {
+                  animation: pulse 1.5s infinite;
+            }
+
+            /* Animated dots for loading */
+            @keyframes dots {
+
+                  0%,
+                  20% {
+                        content: ".";
+                  }
+
+                  40% {
+                        content: "..";
+                  }
+
+                  60% {
+                        content: "...";
+                  }
+
+                  80%,
+                  100% {
+                        content: "";
+                  }
+            }
+
+            .loading-dots::after {
+                  content: "";
+                  animation: dots 1.5s infinite;
+            }
+
+            /* Wave animation for voice recognition */
+            .wave {
+                  position: absolute;
+                  border-radius: 50%;
+                  background: rgba(14, 165, 233, 0.3);
+                  animation: wave 2s infinite;
+            }
+
+            .line-clamp-2 {
+                  display: -webkit-box;
+                  -webkit-line-clamp: 2;
+                  -webkit-box-orient: vertical;
+                  overflow: hidden;
+            }
+
+            /* Source card hover effect */
+            .sources-list>div:hover {
+                  transform: translateY(-2px);
+            }
+
+            /* Related query button hover effect */
+            .related-query-btn:hover {
+                  transform: translateY(-2px);
+            }
+
+            /* Additional animation for related queries */
+            @keyframes pulseButton {
+                  0% {
+                        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.2);
+                  }
+
+                  70% {
+                        box-shadow: 0 0 0 6px rgba(14, 165, 233, 0);
+                  }
+
+                  100% {
+                        box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+                  }
+            }
+
+            .related-query-btn:hover {
+                  animation: pulseButton 1.5s infinite;
+            }
+
+            .wave:nth-child(2) {
+                  animation-delay: 0.3s;
+            }
+
+            .wave:nth-child(3) {
+                  animation-delay: 0.6s;
+            }
+
+            @keyframes wave {
+                  0% {
+                        transform: scale(0);
+                        opacity: 0.5;
+                  }
+
+                  100% {
+                        transform: scale(1.5);
+                        opacity: 0;
+                  }
+            }
+
+            /* Fade-in animation */
+            @keyframes fadeIn {
+                  from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                  }
+
+                  to {
+                        opacity: 1;
+                        transform: translateY(0);
+                  }
+            }
+
+            .fade-in {
+                  animation: fadeIn 0.3s ease-out forwards;
+            }
+
+            /* Custom styling for markdown content */
+            .prose h1 {
+                  font-size: 1.75rem;
+                  margin-top: 1.5rem;
+                  margin-bottom: 1rem;
+                  font-weight: 700;
+            }
+
+            .prose h2 {
+                  font-size: 1.5rem;
+                  margin-top: 1.4rem;
+                  margin-bottom: 0.8rem;
+                  font-weight: 600;
+            }
+
+            .prose h3 {
+                  font-size: 1.25rem;
+                  margin-top: 1.3rem;
+                  margin-bottom: 0.6rem;
+                  font-weight: 600;
+            }
+
+            .prose p {
+                  margin-bottom: 1rem;
+                  line-height: 1.6;
+            }
+
+            .prose ul {
+                  margin-bottom: 1rem;
+                  padding-left: 1.5rem;
+                  list-style-type: disc;
+            }
+
+            .prose ol {
+                  margin-bottom: 1rem;
+                  padding-left: 1.5rem;
+                  list-style-type: decimal;
+            }
+
+            .prose li {
+                  margin-bottom: 0.5rem;
+            }
+
+            .prose pre {
+                  padding: 1rem;
+                  margin: 1rem 0;
+                  border-radius: 0.5rem;
+                  overflow-x: auto;
+            }
+
+            .prose blockquote {
+                  border-left: 4px solid #cbd5e1;
+                  padding-left: 1rem;
+                  margin: 1rem 0;
+                  font-style: italic;
+            }
+
+            .prose code:not(pre code) {
+                  background-color: rgba(0, 0, 0, 0.05);
+                  padding: 0.2rem 0.4rem;
+                  border-radius: 0.25rem;
+                  font-size: 0.9em;
+            }
+
+            .dark .prose code:not(pre code) {
+                  background-color: rgba(255, 255, 255, 0.1);
+            }
+
+            /* Source and related query styling */
+            .source-button {
+                  transition: transform 0.2s, box-shadow 0.2s;
+            }
+
+            .source-button:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+
+            .dark .source-button:hover {
+                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Sidebar animation */
+            .sidebar-slide-in {
+                  animation: slideIn 0.3s ease-out forwards;
+            }
+
+            @keyframes slideIn {
+                  from {
+                        transform: translateX(-100%);
+                  }
+
+                  to {
+                        transform: translateX(0);
+                  }
+            }
+      </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 min-h-screen flex flex-col">
+      <!-- Header -->
+      <header class="bg-white dark:bg-secondary-900 shadow-sm sticky top-0 z-50">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                  <div class="flex items-center space-x-2">
+                        <button id="sidebar-toggle"
+                              class="md:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-secondary-800 transition-colors">
+                              <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="text-lg md:text-xl font-bold text-primary-600 dark:text-primary-400">
+                              <i class="fas fa-search mr-2"></i>AI Search Engine
+                        </h1>
+                  </div>
+
+                  <div class="flex items-center space-x-3">
+                        <button id="theme-toggle"
+                              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-secondary-800 transition-colors">
+                              <i class="fas fa-moon dark:hidden"></i>
+                              <i class="fas fa-sun hidden dark:inline"></i>
+                        </button>
+                        <a href="https://github.com/yourusername/AI-searchEngine" target="_blank"
+                              class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-secondary-800 transition-colors">
+                              <i class="fab fa-github"></i>
+                        </a>
+                  </div>
+            </div>
+      </header>
+
+      <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar (hidden on mobile by default) -->
+            <aside id="sidebar"
+                  class="w-72 bg-white dark:bg-secondary-900 shadow-md hidden md:block shrink-0 overflow-y-auto transition-all duration-300 transform -translate-x-full md:translate-x-0 fixed md:static h-full md:h-auto z-40">
+                  <div class="p-4">
+                        <h2 class="font-semibold text-lg mb-4 flex items-center">
+                              <i class="fas fa-compass mr-2 text-primary-500"></i>Navigation
+                        </h2>
+
+                        <div class="flex space-x-2 mb-4">
+                              <button id="show-history"
+                                    class="flex-1 py-2 px-3 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300 rounded-md text-sm font-medium">
+                                    <i class="fas fa-history mr-1"></i> History
+                              </button>
+                              <button id="show-bookmarks"
+                                    class="flex-1 py-2 px-3 bg-gray-100 dark:bg-secondary-800 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-md text-sm font-medium transition-colors">
+                                    <i class="fas fa-bookmark mr-1"></i> Bookmarks
+                              </button>
+                        </div>
+
+                        <!-- History List -->
+                        <div id="history-container" class="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto pb-4">
+                              <div class="text-sm text-gray-500 dark:text-gray-400 italic text-center py-8"
+                                    id="no-history-message">
+                                    <i class="fas fa-history text-gray-300 dark:text-gray-600 text-3xl mb-2"></i>
+                                    <p>Your search history will appear here</p>
+                              </div>
+                        </div>
+
+                        <!-- Bookmarks List (hidden by default) -->
+                        <div id="bookmarks-container"
+                              class="space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto pb-4 hidden">
+                              <div class="text-sm text-gray-500 dark:text-gray-400 italic text-center py-8"
+                                    id="no-bookmarks-message">
+                                    <i class="fas fa-bookmark text-gray-300 dark:text-gray-600 text-3xl mb-2"></i>
+                                    <p>Your bookmarks will appear here</p>
+                              </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                              <h3 class="font-medium text-sm mb-3 text-gray-500 dark:text-gray-400">TIPS</h3>
+                              <div class="space-y-2 text-sm">
+                                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
+                                          <p class="text-blue-800 dark:text-blue-200">
+                                                <i class="fas fa-lightbulb text-blue-500 mr-2"></i>
+                                                Use voice search to ask questions hands-free
+                                          </p>
+                                    </div>
+                                    <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+                                          <p class="text-purple-800 dark:text-purple-200">
+                                                <i class="fas fa-star text-purple-500 mr-2"></i>
+                                                Bookmark important results for easy reference
+                                          </p>
+                                    </div>
+                              </div>
+                        </div>
+                  </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-4 md:p-6">
+                  <div class="container mx-auto max-w-4xl">
+                        <!-- Search Form -->
+                        <div class="bg-white dark:bg-secondary-900 rounded-lg shadow-md p-4 md:p-6 mb-6">
+                              <h2 class="text-xl font-semibold mb-4 text-secondary-800 dark:text-secondary-200">
+                                    <span
+                                          class="bg-clip-text text-transparent bg-gradient-to-r from-primary-500 to-blue-600">Ask
+                                          any question</span>
+                              </h2>
+
+                              <div class="relative mb-4">
+                                    <textarea id="query-input" rows="3"
+                                          class="w-full px-4 py-2 border border-gray-300 dark:border-secondary-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-secondary-800 placeholder-gray-400"
+                                          placeholder="Enter your question here..."></textarea>
+
+                                    <div class="absolute right-3 top-3 flex space-x-2">
+                                          <button id="voice-button"
+                                                class="p-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
+                                                title="Voice Search">
+                                                <i class="fas fa-microphone"></i>
+                                          </button>
+                                          <button id="clear-button"
+                                                class="p-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
+                                                title="Clear Input">
+                                                <i class="fas fa-times"></i>
+                                          </button>
+                                    </div>
+                              </div>
+
+                              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                                    <button id="search-button"
+                                          class="px-6 py-2 bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-700 hover:to-blue-700 text-white rounded-md font-medium flex items-center justify-center transition-colors shadow-md">
+                                          <i class="fas fa-search mr-2"></i>Search
+                                    </button>
+
+                                    <div class="flex items-center space-x-3 text-sm text-gray-500 dark:text-gray-400">
+                                          <span id="search-stats" class="hidden">
+                                                <i class="fas fa-bolt mr-1"></i><span id="search-time">0.00</span>s
+                                          </span>
+                                          <span id="sources-count" class="hidden">
+                                                <i class="fas fa-link mr-1"></i><span id="sources-num">0</span> sources
+                                          </span>
+                                          <span id="cached-indicator" class="hidden">
+                                                <i class="fas fa-database mr-1"></i>Cached
+                                          </span>
+                                    </div>
+                              </div>
+                        </div>
+
+                        <!-- Voice Search UI Modal (hidden by default) -->
+                        <div id="voice-modal"
+                              class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center hidden backdrop-blur-sm">
+                              <div
+                                    class="bg-white dark:bg-secondary-900 rounded-lg shadow-xl p-6 max-w-md w-full mx-4 fade-in">
+                                    <div class="text-center">
+                                          <h3
+                                                class="text-lg font-semibold mb-4 text-secondary-800 dark:text-secondary-200">
+                                                Voice Search
+                                          </h3>
+
+                                          <div id="voice-animation"
+                                                class="w-24 h-24 mx-auto rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center mb-6 relative cursor-pointer">
+                                                <!-- Wave animations (hidden by default) -->
+                                                <div class="wave hidden absolute w-full h-full"></div>
+                                                <div class="wave hidden absolute w-full h-full"></div>
+                                                <div class="wave hidden absolute w-full h-full"></div>
+                                                <i id="voice-icon"
+                                                      class="fas fa-microphone text-3xl text-primary-600 dark:text-primary-400 relative z-10"></i>
+                                          </div>
+
+                                          <p id="voice-status" class="text-gray-600 dark:text-gray-300 mb-4">Click the
+                                                microphone to start</p>
+
+                                          <div id="voice-text-preview"
+                                                class="mb-6 text-left p-3 bg-gray-50 dark:bg-secondary-800 rounded-md min-h-[60px] hidden">
+                                                <p class="italic text-gray-600 dark:text-gray-300">Recognized text will
+                                                      appear here...</p>
+                                          </div>
+
+                                          <div class="flex justify-between space-x-3">
+                                                <button id="voice-cancel"
+                                                      class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-secondary-800 transition-colors">
+                                                      Cancel
+                                                </button>
+                                                <button id="voice-submit"
+                                                      class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                      disabled>
+                                                      Search
+                                                </button>
+                                          </div>
+                                    </div>
+                              </div>
+                        </div>
+
+                        <!-- Results Section (hidden until results are available) -->
+                        <div id="results-container" class="hidden">
+                              <div class="bg-white dark:bg-secondary-900 rounded-lg shadow-md p-4 md:p-6 mb-4">
+                                    <div class="flex justify-between items-start mb-4">
+                                          <h3 class="text-lg font-semibold text-secondary-800 dark:text-secondary-200">
+                                                Results
+                                          </h3>
+
+                                          <div class="flex space-x-2">
+                                                <button id="bookmark-button"
+                                                      class="p-2 text-gray-500 hover:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors"
+                                                      title="Bookmark this result">
+                                                      <i class="far fa-bookmark"></i>
+                                                </button>
+                                                <button id="copy-button"
+                                                      class="p-2 text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
+                                                      title="Copy result">
+                                                      <i class="far fa-copy"></i>
+                                                </button>
+                                          </div>
+                                    </div>
+
+                                    <!-- System Prompt Indicator -->
+                                    <div id="system-prompt-container"
+                                          class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-md text-sm hidden">
+                                          <div class="flex justify-between items-start">
+                                                <div class="flex items-center">
+                                                      <i class="fas fa-robot text-blue-500 mr-2"></i>
+                                                      <span class="font-medium text-blue-800 dark:text-blue-200">System
+                                                            Prompt</span>
+                                                </div>
+                                                <button id="toggle-system-prompt"
+                                                      class="text-blue-500 hover:text-blue-700">
+                                                      <i class="fas fa-chevron-down"></i>
+                                                </button>
+                                          </div>
+                                          <div id="system-prompt-content"
+                                                class="mt-2 hidden text-blue-800 dark:text-blue-200"></div>
+                                    </div>
+
+                                    <!-- Loading State -->
+                                    <div id="loading-indicator" class="py-8 text-center">
+                                          <div
+                                                class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-primary-200 border-t-primary-600 mb-4">
+                                          </div>
+                                          <p class="text-gray-500 dark:text-gray-400 loading-dots">Searching for the
+                                                best results</p>
+                                    </div>
+
+                                    <!-- Results Content -->
+                                    <div id="results-content"
+                                          class="prose prose-lg max-w-none dark:prose-invert hidden">
+                                          <!-- Results will be inserted here -->
+                                    </div>
+
+                                    <!-- Sources Section -->
+                                    <div id="sources-section"
+                                          class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 hidden">
+                                          <h4
+                                                class="text-md font-semibold mb-4 text-secondary-800 dark:text-secondary-200 flex items-center">
+                                                <i class="fas fa-link text-primary-500 mr-2"></i>Sources
+                                          </h4>
+                                          <div id="sources-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <!-- Sources will be inserted here -->
+                                          </div>
+                                    </div>
+                              </div>
+
+                              <!-- Related Queries Section -->
+                              <div id="related-queries"
+                                    class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 hidden">
+                                    <h4
+                                          class="text-md font-semibold mb-4 text-secondary-800 dark:text-secondary-200 flex items-center">
+                                          <i class="fas fa-question-circle text-primary-500 mr-2"></i>Related Questions
+                                    </h4>
+                                    <div id="related-queries-list" class="flex flex-wrap gap-3">
+                                          <!-- Related queries will be inserted here -->
+                                    </div>
+                              </div>
+                        </div>
+                  </div>
+      </div>
+      </main>
+      </div>
+
+      <!-- Footer -->
+      <footer class="bg-white dark:bg-secondary-900 shadow-md mt-auto py-4">
+            <div class="container mx-auto px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <p>© 2025 AI Search Engine. Powered by OpenAI and DuckDuckGo.</p>
+            </div>
+      </footer>
+
+      <!-- Toasts container for notifications -->
+      <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2"></div>
+
+      <!-- App JavaScript -->
+      <script>
+            // Initialize markdown parser
+            const md = window.markdownit({
+                  html: true,
+                  linkify: true,
+                  typographer: true,
+                  highlight: function (str, lang) {
+                        if (lang && hljs.getLanguage(lang)) {
+                              try {
+                                    return hljs.highlight(str, { language: lang }).value;
+                              } catch (__) { }
+                        }
+                        return ''; // use external default escaping
+                  }
+            });
+
+            // DOM Elements
+            const elements = {
+                  // Main UI elements
+                  queryInput: document.getElementById('query-input'),
+                  searchButton: document.getElementById('search-button'),
+                  resultsContainer: document.getElementById('results-container'),
+                  resultsContent: document.getElementById('results-content'),
+                  loadingIndicator: document.getElementById('loading-indicator'),
+                  relatedQueries: document.getElementById('related-queries'),
+                  relatedQueriesList: document.getElementById('related-queries-list'),
+                  sourcesSection: document.getElementById('sources-section'),
+                  sourcesList: document.getElementById('sources-list'),
+                  systemPromptContainer: document.getElementById('system-prompt-container'),
+                  systemPromptContent: document.getElementById('system-prompt-content'),
+                  toggleSystemPrompt: document.getElementById('toggle-system-prompt'),
+
+                  // Stats elements
+                  searchStats: document.getElementById('search-stats'),
+                  searchTime: document.getElementById('search-time'),
+                  sourcesCount: document.getElementById('sources-count'),
+                  sourcesNum: document.getElementById('sources-num'),
+                  cachedIndicator: document.getElementById('cached-indicator'),
+
+                  // Action buttons
+                  clearButton: document.getElementById('clear-button'),
+                  copyButton: document.getElementById('copy-button'),
+                  bookmarkButton: document.getElementById('bookmark-button'),
+
+                  // Voice search elements
+                  voiceButton: document.getElementById('voice-button'),
+                  voiceModal: document.getElementById('voice-modal'),
+                  voiceAnimation: document.getElementById('voice-animation'),
+                  voiceIcon: document.getElementById('voice-icon'),
+                  voiceStatus: document.getElementById('voice-status'),
+                  voiceTextPreview: document.getElementById('voice-text-preview'),
+                  voiceCancel: document.getElementById('voice-cancel'),
+                  voiceSubmit: document.getElementById('voice-submit'),
+                  voiceWaves: document.querySelectorAll('.wave'),
+
+                  // Sidebar elements
+                  sidebar: document.getElementById('sidebar'),
+                  sidebarToggle: document.getElementById('sidebar-toggle'),
+                  historyContainer: document.getElementById('history-container'),
+                  bookmarksContainer: document.getElementById('bookmarks-container'),
+                  showHistory: document.getElementById('show-history'),
+                  showBookmarks: document.getElementById('show-bookmarks'),
+                  noHistoryMessage: document.getElementById('no-history-message'),
+                  noBookmarksMessage: document.getElementById('no-bookmarks-message'),
+
+                  // Theme toggle
+                  themeToggle: document.getElementById('theme-toggle'),
+
+                  // Toast container
+                  toastContainer: document.getElementById('toast-container')
+            };
+
+            // App state
+            const state = {
+                  searchHistory: [],
+                  bookmarks: [],
+                  currentQuery: '',
+                  currentResult: '',
+                  isLoading: false,
+                  isRecording: false,
+                  recognizedText: '',
+                  darkMode: localStorage.getItem('darkMode') === 'true',
+                  systemPrompt: '',
+                  activePrompt: '',
+                  systemPromptVisible: false
+            };
+
+            // Apply dark mode if saved
+            if (state.darkMode) {
+                  document.documentElement.classList.add('dark');
+            }
+
+            // ===== EVENT HANDLERS =====
+
+            // Submit search
+            function submitSearch() {
+                  const query = elements.queryInput.value.trim();
+
+                  if (!query) {
+                        showToast('Please enter a search query', 'warning');
+                        return;
+                  }
+
+                  state.currentQuery = query;
+                  performSearch(query);
+
+                  // Add to search history
+                  addToHistory(query);
+            }
+
+            // Clear input
+            function clearInput() {
+                  elements.queryInput.value = '';
+                  elements.queryInput.focus();
+            }
+
+            // Toggle sidebar on mobile
+            function toggleSidebar() {
+                  const isVisible = elements.sidebar.classList.contains('translate-x-0');
+
+                  if (isVisible) {
+                        // Hide sidebar
+                        elements.sidebar.classList.remove('translate-x-0');
+                        elements.sidebar.classList.add('-translate-x-full');
+                        setTimeout(() => {
+                              elements.sidebar.classList.add('hidden');
+                        }, 300);
+                  } else {
+                        // Show sidebar
+                        elements.sidebar.classList.remove('hidden');
+                        setTimeout(() => {
+                              elements.sidebar.classList.remove('-translate-x-full');
+                              elements.sidebar.classList.add('translate-x-0', 'sidebar-slide-in');
+                        }, 10);
+                  }
+            }
+
+            // Toggle between history and bookmarks
+            function showHistoryTab() {
+                  elements.historyContainer.classList.remove('hidden');
+                  elements.bookmarksContainer.classList.add('hidden');
+                  elements.showHistory.classList.add('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
+                  elements.showHistory.classList.remove('bg-gray-100', 'dark:bg-secondary-800');
+                  elements.showBookmarks.classList.remove('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
+                  elements.showBookmarks.classList.add('bg-gray-100', 'dark:bg-secondary-800');
+            }
+
+            function showBookmarksTab() {
+                  elements.historyContainer.classList.add('hidden');
+                  elements.bookmarksContainer.classList.remove('hidden');
+                  elements.showBookmarks.classList.add('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
+                  elements.showBookmarks.classList.remove('bg-gray-100', 'dark:bg-secondary-800');
+                  elements.showHistory.classList.remove('bg-primary-100', 'dark:bg-primary-900', 'text-primary-700', 'dark:text-primary-300');
+                  elements.showHistory.classList.add('bg-gray-100', 'dark:bg-secondary-800');
+                  loadBookmarks();
+            }
+
+            // Toggle dark mode
+            function toggleDarkMode() {
+                  state.darkMode = !state.darkMode;
+                  document.documentElement.classList.toggle('dark', state.darkMode);
+                  localStorage.setItem('darkMode', state.darkMode);
+            }
+
+            // Toggle system prompt visibility
+            function toggleSystemPrompt() {
+                  state.systemPromptVisible = !state.systemPromptVisible;
+                  if (state.systemPromptVisible) {
+                        elements.systemPromptContent.classList.remove('hidden');
+                        elements.toggleSystemPrompt.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                  } else {
+                        elements.systemPromptContent.classList.add('hidden');
+                        elements.toggleSystemPrompt.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                  }
+            }
+
+            // Copy results to clipboard
+            function copyResults() {
+                  const textToCopy = state.currentResult;
+
+                  if (!textToCopy) {
+                        showToast('No results to copy', 'warning');
+                        return;
+                  }
+
+                  navigator.clipboard.writeText(textToCopy)
+                        .then(() => {
+                              showToast('Results copied to clipboard', 'success');
+                        })
+                        .catch(err => {
+                              showToast('Failed to copy results', 'error');
+                              console.error('Copy failed', err);
+                        });
+            }
+
+            // Bookmark current result
+            // Replace the existing bookmarkResult function
+
+            // Bookmark/unbookmark current result
+            function bookmarkResult() {
+                  if (!state.currentQuery || !state.currentResult) {
+                        showToast('No results to bookmark', 'warning');
+                        return;
+                  }
+
+                  // If already bookmarked, delete it
+                  if (isCurrentResultBookmarked()) {
+                        const timestamp = getBookmarkTimestamp();
+
+                        if (!timestamp) {
+                              showToast('Unable to find bookmark timestamp', 'error');
+                              return;
+                        }
+
+                        fetch('/bookmark/delete', {
+                              method: 'POST',
+                              headers: {
+                                    'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                    timestamp: timestamp
+                              })
+                        })
+                              .then(response => response.json())
+                              .then(data => {
+                                    if (data.error) {
+                                          showToast(data.error, 'error');
+                                    } else {
+                                          showToast('Bookmark removed successfully', 'success');
+                                          // Update bookmarks
+                                          loadBookmarks();
+                                          // Update button appearance
+                                          updateBookmarkButton();
+                                    }
+                              })
+                              .catch(error => {
+                                    showToast('Failed to remove bookmark', 'error');
+                                    console.error('Error:', error);
+                              });
+                  } else {
+                        // Not bookmarked, add it
+                        fetch('/bookmark', {
+                              method: 'POST',
+                              headers: {
+                                    'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                    query: state.currentQuery,
+                                    result: state.currentResult
+                              })
+                        })
+                              .then(response => response.json())
+                              .then(data => {
+                                    if (data.error) {
+                                          showToast(data.error, 'error');
+                                    } else {
+                                          showToast('Bookmark saved successfully', 'success');
+                                          // Update bookmarks
+                                          loadBookmarks();
+                                          // Update button appearance
+                                          updateBookmarkButton();
+                                    }
+                              })
+                              .catch(error => {
+                                    showToast('Failed to save bookmark', 'error');
+                                    console.error('Error:', error);
+                              });
+                  }
+            }
+
+            // ===== VOICE RECOGNITION FUNCTIONS =====
+
+            // Show voice modal
+            function showVoiceModal() {
+                  elements.voiceModal.classList.remove('hidden');
+                  elements.voiceStatus.textContent = 'Click the microphone to start';
+                  elements.voiceTextPreview.classList.add('hidden');
+                  elements.voiceSubmit.disabled = true;
+                  state.recognizedText = '';
+            }
+
+            // Hide voice modal
+            function hideVoiceModal() {
+                  elements.voiceModal.classList.add('hidden');
+                  elements.voiceAnimation.classList.remove('pulse-animation');
+                  elements.voiceIcon.classList.remove('text-red-500');
+                  elements.voiceIcon.classList.add('text-primary-600', 'dark:text-primary-400');
+                  elements.voiceWaves.forEach(wave => wave.classList.add('hidden'));
+                  state.isRecording = false;
+            }
+
+            // Start voice recording
+            function startVoiceRecording() {
+                  if (state.isRecording) return;
+
+                  state.isRecording = true;
+                  elements.voiceAnimation.classList.add('pulse-animation');
+                  elements.voiceIcon.classList.remove('text-primary-600', 'dark:text-primary-400');
+                  elements.voiceIcon.classList.add('text-red-500');
+                  elements.voiceStatus.textContent = 'Listening...';
+
+                  // Show wave animations
+                  elements.voiceWaves.forEach(wave => wave.classList.remove('hidden'));
+
+                  // Make request to the voice endpoint
+                  fetch('/voice', {
+                        method: 'POST',
+                        headers: {
+                              'Content-Type': 'application/json',
+                        }
+                  })
+                        .then(response => response.json())
+                        .then(data => {
+                              state.isRecording = false;
+                              elements.voiceAnimation.classList.remove('pulse-animation');
+                              elements.voiceIcon.classList.remove('text-red-500');
+                              elements.voiceIcon.classList.add('text-primary-600', 'dark:text-primary-400');
+                              elements.voiceWaves.forEach(wave => wave.classList.add('hidden'));
+
+                              if (data.error) {
+                                    elements.voiceStatus.textContent = data.error;
+                                    setTimeout(() => {
+                                          elements.voiceStatus.textContent = 'Click the microphone to try again';
+                                    }, 3000);
+                              } else {
+                                    // Display recognized text
+                                    state.recognizedText = data.recognized_text;
+                                    elements.voiceTextPreview.innerHTML = `<p class="font-medium">${state.recognizedText}</p>`;
+                                    elements.voiceTextPreview.classList.remove('hidden');
+                                    elements.voiceStatus.textContent = 'Voice recognition successful';
+                                    elements.voiceSubmit.disabled = false;
+                              }
+                        })
+                        .catch(error => {
+                              state.isRecording = false;
+                              elements.voiceAnimation.classList.remove('pulse-animation');
+                              elements.voiceIcon.classList.remove('text-red-500');
+                              elements.voiceIcon.classList.add('text-primary-600', 'dark:text-primary-400');
+                              elements.voiceWaves.forEach(wave => wave.classList.add('hidden'));
+                              elements.voiceStatus.textContent = 'Failed to recognize speech. Try again.';
+                              console.error('Error:', error);
+                        });
+            }
+
+            // Submit voice search
+            function submitVoiceSearch() {
+                  if (!state.recognizedText) return;
+
+                  elements.queryInput.value = state.recognizedText;
+                  hideVoiceModal();
+                  submitSearch();
+            }
+
+            // ===== SEARCH FUNCTIONS =====
+
+            // Perform search
+            // Perform search
+            function performSearch(query) {
+                  // Show loading state
+                  state.isLoading = true;
+                  elements.resultsContainer.classList.remove('hidden');
+                  elements.resultsContent.classList.add('hidden');
+                  elements.loadingIndicator.classList.remove('hidden');
+                  elements.relatedQueries.classList.add('hidden');
+                  elements.sourcesSection.classList.add('hidden');
+                  elements.systemPromptContainer.classList.add('hidden');
+
+                  // Reset stats
+                  elements.searchStats.classList.add('hidden');
+                  elements.sourcesCount.classList.add('hidden');
+                  elements.cachedIndicator.classList.add('hidden');
+
+                  // Make API request
+                  fetch('/process', {
+                        method: 'POST',
+                        headers: {
+                              'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ query: query })
+                  })
+                        .then(response => response.json())
+                        .then(data => {
+                              state.isLoading = false;
+
+                              if (data.error) {
+                                    showToast(data.error, 'error');
+                                    // Hide loading and results
+                                    elements.loadingIndicator.classList.add('hidden');
+                                    elements.resultsContent.classList.add('hidden');
+                                    // Show error message
+                                    elements.resultsContent.innerHTML = `<div class="text-red-500"><p>${data.error}</p></div>`;
+                                    elements.resultsContent.classList.remove('hidden');
+                              } else {
+                                    // Update state
+                                    state.currentResult = data.result;
+
+                                    // Hide loading
+                                    elements.loadingIndicator.classList.add('hidden');
+
+                                    // Extract system prompt if available
+                                    extractSystemPrompt(data.result);
+
+                                    // NEW: Clean the content before rendering
+                                    const cleanedContent = cleanContentForDisplay(data.result);
+
+                                    // Render result with markdown
+                                    const htmlResult = md.render(cleanedContent);
+                                    elements.resultsContent.innerHTML = htmlResult;
+                                    elements.resultsContent.classList.remove('hidden');
+
+                                    // Initialize syntax highlighting
+                                    document.querySelectorAll('pre code').forEach((block) => {
+                                          hljs.highlightElement(block);
+                                    });
+
+                                    // Extract and display sources
+                                    extractSources(data.result);
+
+                                    // Extract and display related queries
+                                    extractRelatedQueries(data.result);
+
+                                    loadBookmarks().then(() => {
+                                          updateBookmarkButton();
+                                    });
+
+                                    // Update stats
+                                    elements.searchTime.textContent = data.time;
+                                    elements.searchStats.classList.remove('hidden');
+
+                                    // Show sources count if available
+                                    if (data.stats && data.stats.sources_count) {
+                                          elements.sourcesNum.textContent = data.stats.sources_count;
+                                          elements.sourcesCount.classList.remove('hidden');
+                                    }
+
+                                    // Show cached indicator if result was cached
+                                    if (data.cached) {
+                                          elements.cachedIndicator.classList.remove('hidden');
+                                    }
+                              }
+                        })
+                        .catch(error => {
+                              state.isLoading = false;
+                              elements.loadingIndicator.classList.add('hidden');
+                              showToast('An error occurred while processing your request', 'error');
+                              console.error('Error:', error);
+                        });
+            }
+
+            // Add this new function to clean content
+            function cleanContentForDisplay(content) {
+                  // Remove Sources section
+                  content = content.replace(/Sources:\s*\n([\s\S]*?)(?=\n\nRelated Queries:|\n\n|$)/g, '');
+
+                  // Remove Related Queries section
+                  content = content.replace(/Related Queries:\s*\n([\s\S]*?)(?=\n\n|$)/g, '');
+
+                  // Remove any trailing empty lines
+                  content = content.trim();
+
+                  return content;
+            }
+
+            // Extract system prompt from result
+            function extractSystemPrompt(result) {
+                  // Check if there's a system prompt in the response
+                  if (result.includes('System Prompt:')) {
+                        const promptMatch = result.match(/System Prompt:\s*\n([\s\S]*?)(?:\n\n|$)/);
+                        if (promptMatch && promptMatch[1]) {
+                              // Show system prompt container
+                              state.systemPrompt = promptMatch[1].trim();
+                              elements.systemPromptContent.innerHTML = state.systemPrompt.replace(/\n/g, '<br>');
+                              elements.systemPromptContainer.classList.remove('hidden');
+                        }
+                  }
+            }
+
+            // Extract and display sources
+            // Replace the existing extractSources function with this improved version
+            // Extract and display sources
+            // Replace the extractSources function with this improved version
+            function extractSources(result) {
+                  console.log("Extracting sources from:", result); // Debug log
+
+                  // Extract the Sources section
+                  let sourceSection = result.match(/Sources:\s*\n([\s\S]*?)(?:\n\nRelated Queries:|$)/);
+
+                  if (!sourceSection) {
+                        console.log("No source section found"); // Debug log
+                        return;
+                  }
+
+                  let sourcesText = sourceSection[1].trim();
+                  console.log("Found sources text:", sourcesText); // Debug log
+
+                  // Parse each source line
+                  const sourceLines = sourcesText.split('\n').filter(line => line.trim() !== '');
+
+                  if (sourceLines.length === 0) {
+                        console.log("No source lines found"); // Debug log
+                        return;
+                  }
+
+                  elements.sourcesList.innerHTML = '';
+
+                  sourceLines.forEach(line => {
+                        try {
+                              // Extract source components using regex
+                              const siteMatch = line.match(/\[([^\]]+)\]/);
+                              const urlMatch = line.match(/\((https?:\/\/[^)]+)\)/);
+
+                              if (!siteMatch || !urlMatch) {
+                                    console.log("Skipping malformed source line:", line); // Debug log
+                                    return;
+                              }
+
+                              const site = siteMatch[1];
+                              const url = urlMatch[1];
+
+                              // Extract title (everything after the URL part)
+                              let title = line.replace(/\[([^\]]+)\]/, '')
+                                    .replace(/\(https?:\/\/[^)]+\)/, '')
+                                    .trim();
+
+                              // If title starts with a dash or similar, clean it up
+                              title = title.replace(/^[-|:]\s*/, '');
+
+                              if (!title) {
+                                    title = site; // Use site name as fallback title
+                              }
+
+                              console.log("Parsed source:", { site, url, title }); // Debug log
+
+                              // Create the source element
+                              const sourceUrl = new URL(url);
+                              const domain = sourceUrl.hostname;
+                              const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                              const path = sourceUrl.pathname + sourceUrl.search;
+
+                              const sourceElem = document.createElement('div');
+                              sourceElem.className = 'bg-white dark:bg-secondary-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1';
+
+                              sourceElem.innerHTML = `
+                <a href="${url}" target="_blank" rel="noopener noreferrer" class="block">
+                    <div class="flex p-3">
+                        <div class="flex-shrink-0 mr-3">
+                            <div class="w-12 h-12 rounded-md bg-gray-100 dark:bg-secondary-700 flex items-center justify-center overflow-hidden">
+                                <img src="${favicon}" alt="${site}" class="w-8 h-8" onerror="this.src='https://www.google.com/s2/favicons?domain=example.com&sz=64'; this.classList.add('w-6', 'h-6');">
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h5 class="text-md font-medium text-primary-600 dark:text-primary-400 truncate">${site}</h5>
+                            <p class="text-sm text-gray-700 dark:text-gray-300 mb-1 line-clamp-2">${title}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center">
+                                <i class="fas fa-link mr-1 text-gray-400 dark:text-gray-500"></i>
+                                <span class="truncate">${path || '/'}</span>
+                            </p>
+                        </div>
+                        <div class="flex-shrink-0 self-center ml-2">
+                            <i class="fas fa-external-link-alt text-gray-400 dark:text-gray-500"></i>
+                        </div>
+                    </div>
+                </a>
+            `;
+
+                              elements.sourcesList.appendChild(sourceElem);
+                        } catch (e) {
+                              console.error("Error processing source line:", line, e); // Debug log
+                        }
+                  });
+
+                  if (elements.sourcesList.children.length > 0) {
+                        elements.sourcesSection.classList.remove('hidden');
+                        console.log("Sources section displayed with", elements.sourcesList.children.length, "items"); // Debug log
+                  } else {
+                        console.log("No valid sources found to display"); // Debug log
+                  }
+            }
+
+            // Replace the extractRelatedQueries function with this improved version
+            function extractRelatedQueries(result) {
+                  console.log("Extracting related queries from:", result); // Debug log
+
+                  // Extract the Related Queries section
+                  const relatedSection = result.match(/Related Queries:\s*\n([\s\S]*?)(?:\n\n|$)/);
+
+                  if (!relatedSection) {
+                        console.log("No related queries section found"); // Debug log
+                        return;
+                  }
+
+                  const relatedText = relatedSection[1].trim();
+                  console.log("Found related queries text:", relatedText); // Debug log
+
+                  // Parse each query line
+                  const queryLines = relatedText.split('\n').filter(line => line.trim() !== '');
+
+                  if (queryLines.length === 0) {
+                        console.log("No query lines found"); // Debug log
+                        return;
+                  }
+
+                  elements.relatedQueriesList.innerHTML = '';
+
+                  queryLines.forEach(line => {
+                        try {
+                              // Clean up the line
+                              let query = line.trim();
+
+                              // Remove bullet points or dashes
+                              query = query.replace(/^[-*•]\s*/, '');
+
+                              if (!query) return;
+
+                              console.log("Parsed query:", query); // Debug log
+
+                              // Determine the appropriate icon based on query content
+                              let icon = 'search-plus';
+                              if (query.toLowerCase().includes('how')) icon = 'question';
+                              if (query.toLowerCase().includes('what')) icon = 'info-circle';
+                              if (query.toLowerCase().includes('when') || query.toLowerCase().includes('date')) icon = 'calendar-alt';
+                              if (query.toLowerCase().includes('where')) icon = 'map-marker-alt';
+                              if (query.toLowerCase().includes('why')) icon = 'lightbulb';
+                              if (query.toLowerCase().includes('compare') || query.toLowerCase().includes('difference')) icon = 'exchange-alt';
+                              if (query.toLowerCase().includes('list') || query.toLowerCase().includes('examples')) icon = 'list-ul';
+                              if (query.toLowerCase().includes('impact')) icon = 'chart-line';
+                              if (query.toLowerCase().includes('community') || query.toLowerCase().includes('anticipation')) icon = 'users';
+
+                              // Create the query button
+                              const btn = document.createElement('button');
+                              btn.className = 'related-query-btn flex-grow sm:flex-grow-0 py-3 px-4 bg-white dark:bg-secondary-800 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 text-sm font-medium transition-all duration-200 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md';
+
+                              btn.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${icon} text-primary-500 mr-2"></i>
+                    <span>${query}</span>
+                </div>
+            `;
+
+                              btn.addEventListener('click', () => {
+                                    elements.queryInput.value = query;
+                                    submitSearch();
+
+                                    // Scroll to top
+                                    window.scrollTo({
+                                          top: 0,
+                                          behavior: 'smooth'
+                                    });
+                              });
+
+                              elements.relatedQueriesList.appendChild(btn);
+                        } catch (e) {
+                              console.error("Error processing query line:", line, e); // Debug log
+                        }
+                  });
+
+                  if (elements.relatedQueriesList.children.length > 0) {
+                        elements.relatedQueries.classList.remove('hidden');
+                        console.log("Related queries section displayed with", elements.relatedQueriesList.children.length, "items"); // Debug log
+                  } else {
+                        console.log("No valid related queries found to display"); // Debug log
+                  }
+            }
+
+            // ===== HISTORY FUNCTIONS =====
+
+            // Add query to history
+            function addToHistory(query) {
+                  // Check if already in history to avoid duplicates
+                  const existingIndex = state.searchHistory.findIndex(item => item.query === query);
+
+                  if (existingIndex !== -1) {
+                        // Remove the existing entry to reposition it at the top
+                        state.searchHistory.splice(existingIndex, 1);
+                  }
+
+                  // Add to the beginning of history
+                  state.searchHistory.unshift({
+                        query: query,
+                        timestamp: new Date().toISOString()
+                  });
+
+                  // Limit history size
+                  if (state.searchHistory.length > 20) {
+                        state.searchHistory.pop();
+                  }
+
+                  // Save to localStorage
+                  localStorage.setItem('searchHistory', JSON.stringify(state.searchHistory));
+
+                  // Update UI if history tab is visible
+                  if (!elements.historyContainer.classList.contains('hidden')) {
+                        renderHistoryList();
+                  }
+            }
+
+            // Load search history from localStorage
+            function loadHistory() {
+                  const savedHistory = localStorage.getItem('searchHistory');
+
+                  if (savedHistory) {
+                        try {
+                              state.searchHistory = JSON.parse(savedHistory);
+                              renderHistoryList();
+                        } catch (e) {
+                              console.error('Error parsing search history', e);
+                              state.searchHistory = [];
+                        }
+                  }
+            }
+
+            // Render history list
+            function renderHistoryList() {
+                  elements.historyContainer.innerHTML = '';
+
+                  if (state.searchHistory.length === 0) {
+                        elements.historyContainer.appendChild(elements.noHistoryMessage);
+                        return;
+                  }
+
+                  state.searchHistory.forEach((item, index) => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'p-2 hover:bg-gray-100 dark:hover:bg-secondary-800 rounded-md cursor-pointer transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700';
+
+                        // Format timestamp
+                        const date = new Date(item.timestamp);
+                        const formattedDate = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                        const formattedTime = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+                        historyItem.innerHTML = `
+                <div class="flex justify-between items-start gap-2">
+                    <p class="text-sm line-clamp-2">${item.query}</p>
+                    <button class="delete-history text-gray-400 hover:text-red-500 p-1" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 flex items-center">
+                    <i class="far fa-clock mr-1"></i>${formattedDate}, ${formattedTime}
+                </p>
+            `;
+
+                        // Add click event to load the query
+                        historyItem.addEventListener('click', (e) => {
+                              // Don't trigger if clicking delete button
+                              if (e.target.closest('.delete-history')) return;
+
+                              elements.queryInput.value = item.query;
+                              submitSearch();
+
+                              // Close sidebar on mobile
+                              if (window.innerWidth < 768) {
+                                    toggleSidebar();
+                              }
+                        });
+
+                        // Add click event for delete button
+                        const deleteBtn = historyItem.querySelector('.delete-history');
+                        deleteBtn.addEventListener('click', (e) => {
+                              e.stopPropagation();
+                              const index = parseInt(deleteBtn.dataset.index);
+                              deleteHistoryItem(index);
+                        });
+
+                        elements.historyContainer.appendChild(historyItem);
+                  });
+            }
+
+            // Delete history item
+            function deleteHistoryItem(index) {
+                  state.searchHistory.splice(index, 1);
+                  localStorage.setItem('searchHistory', JSON.stringify(state.searchHistory));
+                  renderHistoryList();
+            }
+
+            // ===== BOOKMARK FUNCTIONS =====
+
+            // Load bookmarks from API
+            // Replace the loadBookmarks function with:
+
+            // Load bookmarks from API
+            function loadBookmarks() {
+                  return new Promise((resolve, reject) => {
+                        fetch('/bookmarks')
+                              .then(response => response.json())
+                              .then(data => {
+                                    if (data.bookmarks) {
+                                          state.bookmarks = data.bookmarks;
+                                          renderBookmarksList();
+                                          resolve();
+                                    }
+                              })
+                              .catch(error => {
+                                    console.error('Error loading bookmarks:', error);
+                                    showToast('Failed to load bookmarks', 'error');
+                                    reject(error);
+                              });
+                  });
+            }
+
+            // Render bookmarks list
+            function renderBookmarksList() {
+                  elements.bookmarksContainer.innerHTML = '';
+
+                  if (state.bookmarks.length === 0) {
+                        elements.bookmarksContainer.appendChild(elements.noBookmarksMessage);
+                        return;
+                  }
+
+                  state.bookmarks.forEach((item, index) => {
+                        const bookmarkItem = document.createElement('div');
+                        bookmarkItem.className = 'p-2 hover:bg-gray-100 dark:hover:bg-secondary-800 rounded-md cursor-pointer transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700';
+
+                        // Format timestamp
+                        const date = new Date(item.timestamp * 1000);
+                        const formattedDate = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
+                        bookmarkItem.innerHTML = `
+                <div class="flex justify-between items-start gap-2">
+                    <p class="text-sm font-medium line-clamp-2">${item.query}</p>
+                    <button class="text-gray-400 hover:text-red-500 p-1 delete-bookmark" data-index="${index}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 flex items-center">
+                    <i class="far fa-bookmark mr-1"></i>${formattedDate}
+                </p>
+            `;
+
+                        // Add click event to load the bookmarked result
+                        bookmarkItem.addEventListener('click', (e) => {
+                              // Don't trigger if clicking delete button
+                              if (e.target.closest('.delete-bookmark')) return;
+
+                              // Load the query and results
+                              elements.queryInput.value = item.query;
+                              state.currentQuery = item.query;
+                              state.currentResult = item.result;
+
+                              // Show results container
+                              elements.resultsContainer.classList.remove('hidden');
+                              elements.loadingIndicator.classList.add('hidden');
+
+                              // Render the result
+                              const htmlResult = md.render(item.result);
+                              elements.resultsContent.innerHTML = htmlResult;
+                              elements.resultsContent.classList.remove('hidden');
+
+                              // Extract and display sources
+                              extractSources(item.result);
+
+                              // Extract and display related queries
+                              extractRelatedQueries(item.result);
+
+                              // Initialize syntax highlighting
+                              document.querySelectorAll('pre code').forEach((block) => {
+                                    hljs.highlightElement(block);
+                              });
+
+                              // Close sidebar on mobile
+                              if (window.innerWidth < 768) {
+                                    toggleSidebar();
+                              }
+                        });
+
+                        // Add click event for delete button
+                        // Update the delete button click handler in renderBookmarksList function
+                        // Replace the existing delete button handler code:
+
+                        // Add click event for delete button
+                        const deleteBtn = bookmarkItem.querySelector('.delete-bookmark');
+                        deleteBtn.addEventListener('click', (e) => {
+                              e.stopPropagation();
+                              const timestamp = item.timestamp;
+
+                              fetch('/bookmark/delete', {
+                                    method: 'POST',
+                                    headers: {
+                                          'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                          timestamp: timestamp
+                                    })
+                              })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                          if (data.error) {
+                                                showToast(data.error, 'error');
+                                          } else {
+                                                showToast('Bookmark deleted successfully', 'success');
+                                                loadBookmarks();
+
+                                                // Update bookmark button if currently displayed result was deleted
+                                                if (state.currentQuery === item.query) {
+                                                      updateBookmarkButton();
+                                                }
+                                          }
+                                    })
+                                    .catch(error => {
+                                          showToast('Failed to delete bookmark', 'error');
+                                          console.error('Error:', error);
+                                    });
+                        });
+
+                        elements.bookmarksContainer.appendChild(bookmarkItem);
+                  });
+            }
+
+            // Add after the renderBookmarksList function
+
+            // Check if current query is already bookmarked
+            function isCurrentResultBookmarked() {
+                  return state.bookmarks.some(bookmark => bookmark.query === state.currentQuery);
+            }
+
+            // Get bookmark timestamp if current result is bookmarked
+            function getBookmarkTimestamp() {
+                  const bookmark = state.bookmarks.find(bookmark => bookmark.query === state.currentQuery);
+                  return bookmark ? bookmark.timestamp : null;
+            }
+
+            // Update bookmark button appearance
+            function updateBookmarkButton() {
+                  if (isCurrentResultBookmarked()) {
+                        elements.bookmarkButton.innerHTML = '<i class="fas fa-bookmark"></i>';
+                        elements.bookmarkButton.classList.add('text-yellow-500');
+                        elements.bookmarkButton.classList.remove('text-gray-500', 'text-gray-400');
+                        elements.bookmarkButton.title = 'Remove bookmark';
+                  } else {
+                        elements.bookmarkButton.innerHTML = '<i class="far fa-bookmark"></i>';
+                        elements.bookmarkButton.classList.remove('text-yellow-500');
+                        elements.bookmarkButton.classList.add('text-gray-500', 'dark:text-gray-400');
+                        elements.bookmarkButton.title = 'Bookmark this result';
+                  }
+            }
+
+            // ===== UTILITY FUNCTIONS =====
+
+            // Show toast notification
+            function showToast(message, type = 'info') {
+                  const toast = document.createElement('div');
+
+                  // Set classes based on type
+                  let typeClasses = '';
+                  let icon = '';
+
+                  switch (type) {
+                        case 'success':
+                              typeClasses = 'bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800';
+                              icon = '<i class="fas fa-check-circle text-green-500 mr-2"></i>';
+                              break;
+                        case 'error':
+                              typeClasses = 'bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 border-red-200 dark:border-red-800';
+                              icon = '<i class="fas fa-exclamation-circle text-red-500 mr-2"></i>';
+                              break;
+                        case 'warning':
+                              typeClasses = 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800';
+                              icon = '<i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>';
+                              break;
+                        default:
+                              typeClasses = 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-800';
+                              icon = '<i class="fas fa-info-circle text-blue-500 mr-2"></i>';
+                  }
+
+                  // Create toast element
+                  toast.className = `px-4 py-3 rounded-lg shadow-md border ${typeClasses} flex items-center max-w-md transform transition-all duration-300 opacity-0 translate-y-2`;
+                  toast.innerHTML = `${icon}<span>${message}</span>`;
+
+                  // Add to container
+                  elements.toastContainer.appendChild(toast);
+
+                  // Trigger animation
+                  setTimeout(() => {
+                        toast.classList.remove('opacity-0', 'translate-y-2');
+                  }, 10);
+
+                  // Remove after timeout
+                  setTimeout(() => {
+                        toast.classList.add('opacity-0', 'translate-y-2');
+                        setTimeout(() => {
+                              if (elements.toastContainer.contains(toast)) {
+                                    elements.toastContainer.removeChild(toast);
+                              }
+                        }, 300);
+                  }, 3000);
+            }
+
+            // Detect browser support for SpeechRecognition
+            function checkVoiceSupport() {
+                  if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+                        elements.voiceButton.title = 'Voice recognition not supported in your browser';
+                        elements.voiceButton.classList.add('opacity-50', 'cursor-not-allowed');
+                        elements.voiceButton.disabled = true;
+                  }
+            }
+
+            // ===== EVENT LISTENERS =====
+
+            // Add event listeners when DOM is loaded
+            document.addEventListener('DOMContentLoaded', () => {
+                  // Search actions
+                  elements.searchButton.addEventListener('click', submitSearch);
+                  elements.queryInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              submitSearch();
+                        }
+                  });
+
+                  // UI actions
+                  elements.clearButton.addEventListener('click', clearInput);
+                  elements.sidebarToggle.addEventListener('click', toggleSidebar);
+                  elements.themeToggle.addEventListener('click', toggleDarkMode);
+                  elements.toggleSystemPrompt.addEventListener('click', toggleSystemPrompt);
+
+                  // Result actions
+                  elements.copyButton.addEventListener('click', copyResults);
+                  elements.bookmarkButton.addEventListener('click', bookmarkResult);
+
+                  // Voice actions
+                  elements.voiceButton.addEventListener('click', showVoiceModal);
+                  elements.voiceCancel.addEventListener('click', hideVoiceModal);
+                  elements.voiceAnimation.addEventListener('click', startVoiceRecording);
+                  elements.voiceSubmit.addEventListener('click', submitVoiceSearch);
+
+                  // Sidebar tabs
+                  elements.showHistory.addEventListener('click', showHistoryTab);
+                  elements.showBookmarks.addEventListener('click', showBookmarksTab);
+
+                  // Close sidebar when clicking outside on mobile
+                  document.addEventListener('click', (e) => {
+                        if (window.innerWidth < 768 &&
+                              !elements.sidebar.contains(e.target) &&
+                              !elements.sidebarToggle.contains(e.target) &&
+                              elements.sidebar.classList.contains('translate-x-0')) {
+                              toggleSidebar();
+                        }
+                  });
+
+                  // Initialize
+                  loadHistory();
+                  checkVoiceSupport();
+            });
+      </script>
+</body>
+
+</html>
