@@ -52,7 +52,7 @@ A modern, AI-powered search engine that combines the intelligence of OpenAI with
 1. **Clone the repository**
 
    ```cmd
-   git clone https://github.com/yourusername/AI-searchEngine.git
+   git clone https://github.com/SIDDHU123M/AI-SearchEngine.git
    cd AI-searchEngine
    ```
 
